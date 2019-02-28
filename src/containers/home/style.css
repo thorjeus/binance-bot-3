@@ -1,0 +1,45 @@
+.logo {
+  height: 5vmin;
+  pointer-events: none;
+}
+
+.left-col {
+  background-color: #fff;
+  height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  width: 70%;
+  min-width: 300px;
+}
+
+.header-label {
+  margin-bottom: 0;
+  font-size: 18px;
+  color: #aaa;
+  font-weight: 300;
+}
+
+.header-value {
+  font-weight: 700;
+  color: #212529;
+}
+
+.form {
+  padding:0 20px;
+}
+
+.listgroup {
+  width: 100%
+}
+
+.right-col {
+  box-shadow: inset 1px 0 2px rgba(0,0,0,0.1);
+  background-color: #eee;
+  padding: 20px;
+  height: calc(100vh - 56px);
+}
