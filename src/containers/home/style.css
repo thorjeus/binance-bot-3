@@ -17,6 +17,13 @@
   min-width: 300px;
 }
 
+.card-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .header-label {
   margin-bottom: 0;
   font-size: 18px;
@@ -31,6 +38,21 @@
 
 .form {
   padding:0 20px;
+}
+
+.label {
+  align-self: flex-start;
+  display: flex;
+}
+
+.card-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.start-button {
 }
 
 .listgroup {

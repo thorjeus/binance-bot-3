@@ -1,5 +1,7 @@
-export default {
-  winRatio: 2,
-  loseRatio: 1,
-  timeframe: 5
+import AppConfig from './AppConfig'
+import ReduxPersist from './ReduxPersist'
+
+export {
+  AppConfig,
+  ReduxPersist
 }
