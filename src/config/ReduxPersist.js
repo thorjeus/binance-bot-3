@@ -10,7 +10,7 @@ const ReduxPersist = {
     // Reducer keys that you do NOT want stored to persistence here.
     // blacklist: [],
     // Optionally, just specify the keys you DO want stored to persistence.
-    whitelist: [],
+    whitelist: ['trader'],
     transforms: [immutablePersistenceTransform]
   }
 }

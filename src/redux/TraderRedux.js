@@ -25,7 +25,7 @@ export const TraderSelectors = {
 /* ------------- Reducers ------------- */
 
 export const toggleTrader = (state) =>
-  state.merge({ started: true })
+  state.merge({ started: !state.started })
 
 
 /* ------------- Hookup Reducers To Types ------------- */

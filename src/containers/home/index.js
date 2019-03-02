@@ -5,14 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 import { connect } from 'react-redux'
 import TraderAction from '../../redux/TraderRedux'
+import BalanceAction from '../../redux/BalanceRedux'
+import usdtPairs from '../../fixtures/usdtPairs'
 
 import './style.css';
-
-// const binance = require('node-binance-api')().options({
-//   APIKEY: process.env.REACT_APP_BINANCE_API_KEY,
-//   APISECRET: process.env.REACT_APP_BINANCE_API_SECRET,
-//   useServerTime: true // If you get timestamp errors, synchronize to server time at startup
-// })
 
 class Home extends Component {
   constructor (props) {
@@ -20,30 +16,53 @@ class Home extends Component {
 
     this.state = {
       positionSize: 0,
-      pair: ''
+      buyTrigger: 20,
+      pair: '',
+      balance: '',
+      balanceUnit: ''
     }
   }
 
   componentDidMount () {
-    // binance.prices('BNBBTC', (error, ticker) => {
-    //   if (error) {
-    //     console.log("Error: ", error);
-    //   } else {
-    //     console.log("Price of BNB: ", ticker);
-    //   }
-    // })
-
-    // axios.get(process.env.REACT_APP_BINANCE_API_URL + 'api/v1/exchangeInfo').then(resp => {
-    //   console.log('resp: ',resp)
-    // })
   }
 
-  onAmountSizeChange = event => {
-    let positionSize = 0
-    if (event.target.value <= 100 && event.target.value >= 0 && !isNaN(event.target.value)) {
-      positionSize = event.target.value
+  componentDidUpdate (prevProps, prevState) {
+    if (prevProps.fetching && !this.props.fetching) {
+      console.log('new balance: ', this.props.balance)
     }
-    this.setState({positionSize})
+  }
+
+  onValueChange = (event, stateKey) => {
+    let value = 0
+    if (event.target.value <= 100 && event.target.value >= 0 && !isNaN(event.target.value)) {
+      value = parseInt(event.target.value)
+    }
+    let newState = {}
+    newState[stateKey] = value
+    this.setState(newState)
+  }
+
+  checkForm = () => {
+    const {pair, positionSize, buyTrigger} = this.state
+    let disabled = true
+    if (pair !== '' && positionSize > 0 && buyTrigger > 0) {
+      disabled = false
+    }
+    return disabled
+  }
+
+  onPairChange = event => {
+    this.props.getBalance(event.target.value)
+    this.setState({pair: event.target.value})
+  }
+
+  displayCurrentPosition = () => {
+    const {balance} = this.props
+    if (!balance || (balance && !balance.amount)) return <div />
+
+    return (
+      <h2 className="header-label"><strong className="header-value">{balance.amount}</strong> {balance.unit}</h2>
+    )
   }
 
   renderLeftCol = () => {
@@ -62,39 +81,68 @@ class Home extends Component {
           <Card.Body>
             <Form className="form text-center">
 
-              <Form.Group>
-                <Form.Label className="label">Position Size</Form.Label>
-                <InputGroup>
-                  <FormControl
-                    type="number"
-                    value={this.state.positionSize}
-                    onChange={this.onAmountSizeChange}
-                  />
-                  <InputGroup.Append>
-                    <InputGroup.Text>%</InputGroup.Text>
-                  </InputGroup.Append>
-                </InputGroup>
-              </Form.Group>
+              <Row noGutters>
+                <Col className="mr-2">
+                  <Form.Group>
+                    <Form.Label className="label">Position Size</Form.Label>
+                    <InputGroup>
+                      <FormControl
+                        disabled={started}
+                        type="number"
+                        value={this.state.positionSize}
+                        onChange={(ev) => this.onValueChange(ev, 'positionSize')}
+                      />
+                      <InputGroup.Append>
+                        <InputGroup.Text>%</InputGroup.Text>
+                      </InputGroup.Append>
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+                <Col className="ml-2">
+                <Form.Group>
+                  <Form.Label className="label">Buy Trigger</Form.Label>
+                    <InputGroup>
+                      <FormControl
+                        disabled={started}
+                        type="number"
+                        value={this.state.buyTrigger}
+                        onChange={(ev) => this.onValueChange(ev, 'buyTrigger')}
+                      />
+                      <InputGroup.Append>
+                        <InputGroup.Text>RSI</InputGroup.Text>
+                      </InputGroup.Append>
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
 
               <Form.Group>
                 <Form.Label className="label">Pair</Form.Label>
-                <Form.Control as="select" className="select-field">
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
+                <Form.Control
+                  disabled={started}
+                  as="select"
+                  className="select-field"
+                  value={this.state.pair}
+                  onChange={this.onPairChange}
+                >
+                  <option></option>
+                  {usdtPairs.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </Form.Control>
               </Form.Group>
 
             </Form>
           </Card.Body>
           <Card.Body className="card-footer">
-            <h2 className="header-label"><strong className="header-value">71.4356</strong> USDT</h2>
+            {this.displayCurrentPosition()}
             <Button
+              disabled={this.checkForm()}
               className="start-button"
               variant={started ? 'danger' : 'success'}
               size="lg"
+              onClick={() => { this.props.toggleTrader() }}
             >
-              <FontAwesomeIcon icon={started ? 'stop' : 'play'} /> Start
+              <FontAwesomeIcon icon={started ? 'stop' : 'play'} />{' '}
+              {started ? 'Stop' : 'Start'}
             </Button>
           </Card.Body>
         </Card>
@@ -111,7 +159,6 @@ class Home extends Component {
   }
 
   render() {
-    console.log('this.props.started = ',this.props.started)
     return (
       <Container fluid>
         <Row noGutters>
@@ -125,13 +172,17 @@ class Home extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    started: state.trader.started
+    started: state.trader.started,
+    fetching: state.balance.fetching,
+    balance: state.balance.balance,
+    balanceError: state.balance.error
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    toggleTrader: () => dispatch(TraderAction.toggleTrader())
+    toggleTrader: () => dispatch(TraderAction.toggleTrader()),
+    getBalance: pair => dispatch(BalanceAction.getBalance(pair))
   }
 }
 
