@@ -1,7 +1,8 @@
 import { createReducer, createActions } from 'reduxsauce'
 import Immutable from 'seamless-immutable'
-// import { gatherChartData } from '../lib/utils'
+import { parsePeriod } from '../lib/rsiCalculator'
 import ImmutableTransform from '../services/ImmutablePersistenceTransform'
+// import { TradeConfig } from '../config'
 
 /* ------------- Types and Action Creators ------------- */
 
@@ -20,8 +21,11 @@ export default Creators
 export const INITIAL_STATE = Immutable({
   fetchingChart: false,
   chartData: null,
-  last50Data: [],
-  chartError: null
+  gatheredData: [],
+  chartError: null,
+  currentRSI: null,
+  recentPeriod: null,
+  periods: []
 })
 
 /* ------------- Selectors ------------- */
@@ -36,66 +40,23 @@ export const getChart = (state, {pair}) => {
   if (pair) {
     return state.merge({ fetchingChart: true, chartData: null, chartError: null })
   } else {
-    return state.merge({ chartData: null, last50Data: null })
+    return state.merge({ chartData: null, gatheredData: null })
   }
 }
 
 export const getChartSuccess = (state, {data}) => {
-  let prevChartData = state.chartData
-  let newLast50Data = ImmutableTransform.in(state.last50Data)
+  let periods = ImmutableTransform.in(state.periods)
+  let updatedPeriods = parsePeriod(data, periods)
+  let recentPeriod = updatedPeriods[updatedPeriods.length - 1]
 
-  let newChartData = {
-    type: data.e,
-    eventTime: data.E,
-    symbol: data.s,
-    currentPrice: data.k.c,
-    priceMovement: '',
-    info: {
-      startTime: data.k.t,
-      closeTime: data.k.T,
-      symbol: data.k.s,
-      interval: data.k.i,
-      firstTrade: data.k.f,
-      lastTrade: data.k.L,
-      openPrice: data.k.o,
-      closePrice: data.k.c,
-      highestPrice: data.k.h,
-      lowestPrice: data.k.l,
-      baseAssessVolume: data.k.v,
-      numberOfTrades: data.k.n,
-      isClosed: data.k.x,
-      assetVolume: data.k.q,
-      buyBaseAssessVolume: data.k.V,
-      buyQuoteAssetVolume: data.k.Q,
-      ignore: data.k.B
-    }
-  }
-
-  if (!prevChartData) {
-    newChartData.lastPrice = data.k.c
-  } else {
-    newChartData.lastPrice = prevChartData.currentPrice
-  }
-
-  if (newChartData.currentPrice < newChartData.lastPrice) {
-    newChartData.priceMovement = 'down'
-  } else if (newChartData.currentPrice > newChartData.lastPrice) {
-    newChartData.priceMovement = 'up'
-  }
-
-  if (newLast50Data.length > 49) { // maintain last 50 chart data
-    newLast50Data.shift()
-  }
-  newLast50Data.push(newChartData)
-
-  return state.merge({ fetchingChart: false, chartData: newChartData, last50Data: newLast50Data })
+  return state.merge({ fetchingChart: false, periods: updatedPeriods, recentPeriod })
 }
 
 export const getChartError = (state, {data}) =>
   state.merge({ fetchingChart: false, chartError: data })
 
 export const resetChartData = (state) =>
-  state.merge({ chartData: null, last50Data: [] })
+  state.merge({ recentPeriod: null, periods: [] })
 
 
 /* ------------- Hookup Reducers To Types ------------- */

@@ -67,23 +67,35 @@ class LeftCol extends Component {
     if (!balance || (balance && !balance.amount)) return <div />
 
     return (
-      <h2 className="header-label"><strong className="header-value">{balance.amount}</strong> {balance.unit}</h2>
+      <h2 className="header-label">Current Position: <strong className="header-value">{balance.unit}</strong></h2>
     )
   }
 
   displayCurrentPrice = () => {
-    const {chartData} = this.props
-    if (chartData && chartData.currentPrice) {
+    const {recentPeriod} = this.props
+    // console.log(recentPeriod)
+
+    if (recentPeriod && recentPeriod.closingPrice) {
       return (
         <h2 className="header-label">
-          <strong className="header-value">{chartData.currentPrice}</strong>{' '}
-          {chartData.priceMovement === 'up' && <FontAwesomeIcon icon="arrow-up" style={{color: 'green'}} />}
-          {chartData.priceMovement === 'down' && <FontAwesomeIcon icon="arrow-down" style={{color: 'red'}} />}
+          <strong className="header-value">{recentPeriod.closingPrice}</strong>{' '}
+          {recentPeriod.priceMovement === 'up' && <FontAwesomeIcon icon="arrow-up" style={{color: 'green'}} />}
+          {recentPeriod.priceMovement === 'down' && <FontAwesomeIcon icon="arrow-down" style={{color: 'red'}} />}
         </h2>
       )
     } else {
-      return <div />
+      return <div style={{minHeight: '21px'}} />
     }
+  }
+
+  displayCurrentRSI = () => {
+    const {recentPeriod} = this.props
+    if (recentPeriod && recentPeriod.rsi) {
+      return (
+        <h2 className="header-label"><strong className="header-value">{recentPeriod.rsi.toFixed(0)}</strong> RSI</h2>
+      )
+    }
+    return <div />
   }
 
   render () {
@@ -93,7 +105,7 @@ class LeftCol extends Component {
       <Col className="left-col">
         <Card className="card">
           <Card.Header className="card-header">
-            <h2 className="header-label"><strong className="header-value">30</strong> RSI</h2>
+            {this.displayCurrentRSI()}
             {this.displayCurrentPrice()}
           </Card.Header>
           <Card.Body>
@@ -176,8 +188,9 @@ const mapStateToProps = (state) => {
     balance: state.balance.balance,
     balanceError: state.balance.error,
     fetchingChart: state.websocket.fetchingChart,
-    chartData: state.websocket.chartData,
-    chartError: state.websocket.chartError
+    recentPeriod: state.websocket.recentPeriod,
+    chartError: state.websocket.chartError,
+    periods: state.websocket.periods
   }
 }
 
