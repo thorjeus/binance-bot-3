@@ -4,11 +4,9 @@ const binance = require('node-binance-api')().options({
   useServerTime: true // If you get timestamp errors, synchronize to server time at startup
 })
 
-const getBalance = cb => {
+const getBalance = () => {
   return new Promise((resolve, reject) => {
     binance.balance((error, balances) => {
-      // console.log("balances()", balances);
-      // console.log("ETH balance: ", balances.ETH.available);
       if (error) {
         resolve({ ok: false, data: error })
       } else {
@@ -18,6 +16,35 @@ const getBalance = cb => {
   })
 }
 
+const getChartData = (pair, timeframe) => {
+  return new Promise((resolve, reject) => {
+    binance.websockets.chart(pair, timeframe, (symbol, interval, chart) => {
+      if (chart && Object.keys(chart).length !== 0) {
+        let tick = binance.last(chart);
+        const lastPrice = chart[tick].close;
+        // Optionally convert 'chart' object to array:
+        let ohlc = binance.ohlc(chart);
+        // console.log(symbol, ohlc);
+        resolve({
+          ok: true,
+          data: {
+            symbol,
+            interval,
+            lastPrice,
+            chart: ohlc
+          }
+        })
+      } else {
+        resolve({
+          ok: false,
+          data: 'Socket error.'
+        })
+      }
+    })
+  })
+}
+
 export default {
-  getBalance
+  getBalance,
+  getChartData
 }

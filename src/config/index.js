@@ -1,7 +1,7 @@
-import AppConfig from './AppConfig'
+import TradeConfig from './TradeConfig'
 import ReduxPersist from './ReduxPersist'
 
 export {
-  AppConfig,
+  TradeConfig,
   ReduxPersist
 }

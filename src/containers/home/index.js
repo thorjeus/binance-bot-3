@@ -1,168 +1,60 @@
 import React, { Component } from 'react'
-import { Container, Row, Col, Form, Button, Card, InputGroup, FormControl } from 'react-bootstrap'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import { AppConfig } from '../../config'
+import { Container, Row, Col } from 'react-bootstrap'
 
 import { connect } from 'react-redux'
-import TraderAction from '../../redux/TraderRedux'
-import BalanceAction from '../../redux/BalanceRedux'
-import usdtPairs from '../../fixtures/usdtPairs'
 
+import LeftCol from './leftCol'
 import './style.css';
 
+// const binance = require('node-binance-api')().options({
+//   APIKEY: process.env.REACT_APP_BINANCE_API_KEY,
+//   APISECRET: process.env.REACT_APP_BINANCE_API_SECRET,
+//   useServerTime: true // If you get timestamp errors, synchronize to server time at startup
+// })
+
 class Home extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      positionSize: 0,
-      buyTrigger: 20,
-      pair: '',
-      balance: '',
-      balanceUnit: ''
-    }
-  }
-
   componentDidMount () {
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    if (prevProps.fetching && !this.props.fetching) {
-      console.log('new balance: ', this.props.balance)
-    }
-  }
-
-  onValueChange = (event, stateKey) => {
-    let value = 0
-    if (event.target.value <= 100 && event.target.value >= 0 && !isNaN(event.target.value)) {
-      value = parseInt(event.target.value)
-    }
-    let newState = {}
-    newState[stateKey] = value
-    this.setState(newState)
-  }
-
-  checkForm = () => {
-    const {pair, positionSize, buyTrigger} = this.state
-    let disabled = true
-    if (pair !== '' && positionSize > 0 && buyTrigger > 0) {
-      disabled = false
-    }
-    return disabled
-  }
-
-  onPairChange = event => {
-    this.props.getBalance(event.target.value)
-    this.setState({pair: event.target.value})
-  }
-
-  displayCurrentPosition = () => {
-    const {balance} = this.props
-    if (!balance || (balance && !balance.amount)) return <div />
-
-    return (
-      <h2 className="header-label"><strong className="header-value">{balance.amount}</strong> {balance.unit}</h2>
-    )
-  }
-
-  renderLeftCol = () => {
-    const { started } = this.props
-
-    return (
-      <Col className="left-col">
-        <Card className="card">
-          <Card.Header className="card-header">
-            <h2 className="header-label"><strong className="header-value">30</strong> RSI</h2>
-            <h2 className="header-label">
-              <strong className="header-value">0.0007304</strong>{' '}
-              <FontAwesomeIcon icon="arrow-up" style={{color: 'green'}} />
-            </h2>
-          </Card.Header>
-          <Card.Body>
-            <Form className="form text-center">
-
-              <Row noGutters>
-                <Col className="mr-2">
-                  <Form.Group>
-                    <Form.Label className="label">Position Size</Form.Label>
-                    <InputGroup>
-                      <FormControl
-                        disabled={started}
-                        type="number"
-                        value={this.state.positionSize}
-                        onChange={(ev) => this.onValueChange(ev, 'positionSize')}
-                      />
-                      <InputGroup.Append>
-                        <InputGroup.Text>%</InputGroup.Text>
-                      </InputGroup.Append>
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-                <Col className="ml-2">
-                <Form.Group>
-                  <Form.Label className="label">Buy Trigger</Form.Label>
-                    <InputGroup>
-                      <FormControl
-                        disabled={started}
-                        type="number"
-                        value={this.state.buyTrigger}
-                        onChange={(ev) => this.onValueChange(ev, 'buyTrigger')}
-                      />
-                      <InputGroup.Append>
-                        <InputGroup.Text>RSI</InputGroup.Text>
-                      </InputGroup.Append>
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <Form.Group>
-                <Form.Label className="label">Pair</Form.Label>
-                <Form.Control
-                  disabled={started}
-                  as="select"
-                  className="select-field"
-                  value={this.state.pair}
-                  onChange={this.onPairChange}
-                >
-                  <option></option>
-                  {usdtPairs.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </Form.Control>
-              </Form.Group>
-
-            </Form>
-          </Card.Body>
-          <Card.Body className="card-footer">
-            {this.displayCurrentPosition()}
-            <Button
-              disabled={this.checkForm()}
-              className="start-button"
-              variant={started ? 'danger' : 'success'}
-              size="lg"
-              onClick={() => { this.props.toggleTrader() }}
-            >
-              <FontAwesomeIcon icon={started ? 'stop' : 'play'} />{' '}
-              {started ? 'Stop' : 'Start'}
-            </Button>
-          </Card.Body>
-        </Card>
-      </Col>
-    )
+    // binance.websockets.chart("ADAUSDT", "5m", (symbol, interval, chart) => {
+    //   if (chart) {
+    //     let tick = binance.last(chart);
+    //     const last = chart[tick].close;
+    //     // console.log(chart);
+    //     console.log(tick)
+    //     // Optionally convert 'chart' object to array:
+    //     // let ohlc = binance.ohlc(chart);
+    //     // console.log(symbol, ohlc);
+    //     console.log(symbol+" last price: "+last)
+    //   } else {
+    //     console.log('no chart...')
+    //   }
+    // }, (err) => {
+    //   console.log('error: ',err)
+    // });
+    // try  {
+    //   // const mySocket = new WebSocket(`wss://stream.binance.com:9443/ws/adausdt@kline_5m`)
+    //   // mySocket.onmessage((data) => {
+    //   //   console.log('ws: ',data)
+    //   // });
+    //   this.socket = new WebSocket(`wss://stream.binance.com:9443/ws/adausdt@kline_5m`);
+    //   // this.socket.onopen = this.onOpen.bind(this);
+    //   // this.socket.onclose = this.onClose.bind(this);
+    //   // this.socket.onerror = this.onError.bind(this);
+    //   this.socket.onmessage = (message) => { console.log('onmessage: ', message) }
+    //
+    // } catch (err) {
+    //   console.log('ws error: ',err)
+    // }
   }
 
   renderRightCol = () => {
-    return (
-      <Col className="right-col">
-
-      </Col>
-    )
+    return <Col className="right-col" />
   }
 
   render() {
     return (
       <Container fluid>
         <Row noGutters>
-          {this.renderLeftCol()}
+          <LeftCol />
           {this.renderRightCol()}
         </Row>
       </Container>
@@ -172,17 +64,11 @@ class Home extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    started: state.trader.started,
-    fetching: state.balance.fetching,
-    balance: state.balance.balance,
-    balanceError: state.balance.error
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    toggleTrader: () => dispatch(TraderAction.toggleTrader()),
-    getBalance: pair => dispatch(BalanceAction.getBalance(pair))
   }
 }
 

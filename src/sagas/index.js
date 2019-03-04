@@ -4,10 +4,12 @@ import BinanceApi from '../services/NodeBinanceApi'
 /* ------------- Types ------------- */
 
 import { BalanceTypes } from '../redux/BalanceRedux'
+import { WebsocketTypes } from '../redux/WebsocketRedux'
 
 /* ------------- Sagas ------------- */
 
 import { getBalance } from './BalanceSagas'
+import { initWebSocketChannel } from './WebsocketSagas'
 
 /* ------------- API ------------- */
 
@@ -20,6 +22,7 @@ const api = BinanceApi
 export default function * root () {
   yield all([
     // some sagas only receive an action
-    takeLatest(BalanceTypes.GET_BALANCE, getBalance, api)
+    takeLatest(BalanceTypes.GET_BALANCE, getBalance, api),
+    takeLatest(WebsocketTypes.GET_CHART, initWebSocketChannel, api)
   ])
 }
