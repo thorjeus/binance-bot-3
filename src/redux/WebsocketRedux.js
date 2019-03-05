@@ -25,7 +25,8 @@ export const INITIAL_STATE = Immutable({
   chartError: null,
   currentRSI: null,
   recentPeriod: null,
-  periods: []
+  periods: [],
+  periodCount: 0
 })
 
 /* ------------- Selectors ------------- */
@@ -38,9 +39,9 @@ export const WebsocketSelectors = {
 
 export const getChart = (state, {pair}) => {
   if (pair) {
-    return state.merge({ fetchingChart: true, chartData: null, chartError: null })
+    return state.merge({ fetchingChart: true, recentPeriod: null, periods: [], periodCount: 0 })
   } else {
-    return state.merge({ chartData: null, gatheredData: null })
+    return state.merge({ recentPeriod: null, periods: [], periodCount: 0 })
   }
 }
 
@@ -49,14 +50,19 @@ export const getChartSuccess = (state, {data}) => {
   let updatedPeriods = parsePeriod(data, periods)
   let recentPeriod = updatedPeriods[updatedPeriods.length - 1]
 
-  return state.merge({ fetchingChart: false, periods: updatedPeriods, recentPeriod })
+  return state.merge({
+    fetchingChart: false,
+    periods: updatedPeriods,
+    periodCount: state.periodCount + 1,
+    recentPeriod
+  })
 }
 
 export const getChartError = (state, {data}) =>
   state.merge({ fetchingChart: false, chartError: data })
 
 export const resetChartData = (state) =>
-  state.merge({ recentPeriod: null, periods: [] })
+  state.merge({ recentPeriod: null, periods: [], periodCount: 0 })
 
 
 /* ------------- Hookup Reducers To Types ------------- */

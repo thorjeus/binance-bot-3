@@ -2,13 +2,18 @@ import { eventChannel } from 'redux-saga'
 import { call, put, take } from 'redux-saga/effects'
 import WebsocketAction from '../redux/WebsocketRedux'
 
-function * createEventChannel (mySocket) {
+function createEventChannel (mySocket) {
   return eventChannel(emit => {
     mySocket.onmessage = (msg => {
       emit(msg)
     }).bind(this)
 
+    mySocket.onclose = (msg => {
+      emit({isClosed: true})
+    }).bind(this)
+
     return () => {
+      console.log('socket closes!!!')
       mySocket.close().bind(this)
     }
   })
@@ -23,14 +28,23 @@ export function * initWebSocketChannel (api, action) {
   while (true) {
     let data
     const msg = yield take(channel)
-    try {
-      data = JSON.parse(msg.data)
-    } catch (err) {
-      data = err
+    if (msg && msg.data) {
+      try {
+        data = JSON.parse(msg.data)
+      } catch (err) {
+        data = err
+      }
+    } else {
+      data = msg
     }
 
-    if (data) {
+    // console.log(data)
+    if (data && data.e && data.e === 'kline') {
       yield put(WebsocketAction.getChartSuccess(data))
+    } else if (data && data.isClosed) {
+      console.log('Websocket connection was closed. Will now proceed to reconnect.')
+      yield put(WebsocketAction.resetChartData())
+      yield put(WebsocketAction.getChart(pair, timeframe))
     } else {
       yield put(WebsocketAction.getChartError(data))
     }

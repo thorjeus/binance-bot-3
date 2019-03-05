@@ -67,7 +67,7 @@ class LeftCol extends Component {
     if (!balance || (balance && !balance.amount)) return <div />
 
     return (
-      <h2 className="header-label">Current Position: <strong className="header-value">{balance.unit}</strong></h2>
+      <h2 className="header-label">Position <strong className="header-value">{balance.unit}</strong></h2>
     )
   }
 
