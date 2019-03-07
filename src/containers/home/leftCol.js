@@ -17,6 +17,8 @@ class LeftCol extends Component {
     super(props)
 
     this.state = {
+      takeProfitRatio: 2,
+      stopLossRatio: 1,
       positionSize: 0,
       buyTrigger: 20,
       pair: '',
@@ -26,7 +28,13 @@ class LeftCol extends Component {
   }
 
   componentDidMount () {
+    this.onOfflineListener = window.addEventListener('offline', () => {
+      console.log('came offline!!!')
+    })
+  }
 
+  componentWillUnmount () {
+    window.removeEventListener('offline', this.onOfflineListener)
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -35,20 +43,10 @@ class LeftCol extends Component {
     // }
   }
 
-  onValueChange = (event, stateKey) => {
-    let value = 0
-    if (event.target.value <= 100 && event.target.value >= 0 && !isNaN(event.target.value)) {
-      value = parseInt(event.target.value)
-    }
-    let newState = {}
-    newState[stateKey] = value
-    this.setState(newState)
-  }
-
   checkForm = () => {
-    const {pair, positionSize, buyTrigger} = this.state
+    const {pair, positionSize, buyTrigger, takeProfitRatio, stopLossRatio} = this.state
     let disabled = true
-    if (pair !== '' && positionSize > 0 && buyTrigger > 0) {
+    if (pair !== '' && positionSize > 0 && buyTrigger > 0 && takeProfitRatio > 0 && stopLossRatio > 0) {
       disabled = false
     }
     return disabled
@@ -78,7 +76,7 @@ class LeftCol extends Component {
     if (recentPeriod && recentPeriod.closingPrice) {
       return (
         <h2 className="header-label">
-          <strong className="header-value">{recentPeriod.closingPrice}</strong>{' '}
+          Price <strong className="header-value">{recentPeriod.closingPrice}</strong>{' '}
           {recentPeriod.priceMovement === 'up' && <FontAwesomeIcon icon="arrow-up" style={{color: 'green'}} />}
           {recentPeriod.priceMovement === 'down' && <FontAwesomeIcon icon="arrow-down" style={{color: 'red'}} />}
         </h2>
@@ -92,7 +90,7 @@ class LeftCol extends Component {
     const {recentPeriod} = this.props
     if (recentPeriod && recentPeriod.rsi) {
       return (
-        <h2 className="header-label"><strong className="header-value">{recentPeriod.rsi.toFixed(0)}</strong> RSI</h2>
+        <h2 className="header-label">RSI <strong className="header-value">{recentPeriod.rsi.toFixed(0)}</strong></h2>
       )
     }
     return <div />
@@ -110,6 +108,39 @@ class LeftCol extends Component {
           </Card.Header>
           <Card.Body>
             <Form className="form text-center">
+              <Row noGutters>
+                <Col className="mr-2">
+                  <Form.Group>
+                    <Form.Label className="label">Profit Ratio</Form.Label>
+                    <InputGroup>
+                      <FormControl
+                        disabled={started}
+                        value={this.state.takeProfitRatio}
+                        onChange={(ev) => this.setState({takeProfitRatio: ev.target.value})}
+                      />
+                      <InputGroup.Append>
+                        <InputGroup.Text>%</InputGroup.Text>
+                      </InputGroup.Append>
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+                <Col className="ml-2">
+                <Form.Group>
+                  <Form.Label className="label">Loss Ratio</Form.Label>
+                    <InputGroup>
+                      <FormControl
+                        disabled={started}
+                        value={this.state.stopLossRatio}
+                        onChange={(ev) => this.setState({stopLossRatio: ev.target.value})}
+                      />
+                      <InputGroup.Append>
+                        <InputGroup.Text>%</InputGroup.Text>
+                      </InputGroup.Append>
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
+
 
               <Row noGutters>
                 <Col className="mr-2">
