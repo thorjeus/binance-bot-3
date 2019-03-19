@@ -16,6 +16,66 @@ const getBalance = () => {
   })
 }
 
+const getPriceBySymbol = symbol => {
+  return new Promise((resolve, reject) => {
+    binance.prices(symbol, (error, resp) => {
+      if (error) {
+        resolve({ ok: false, data: error })
+      } else {
+        resolve({ ok: true, data: resp })
+      }
+    })
+  })
+}
+
+const buy = (symbol, qty, price, param = {type: 'LIMIT'}) => {
+  return new Promise((resolve, reject) => {
+    binance.buy(symbol, qty, price, param, (error, resp) => {
+      if (error) {
+        resolve({ ok: false, data: error })
+      } else {
+        resolve({ ok: true, data: resp })
+      }
+    })
+  })
+}
+
+const sell = (symbol, qty, price, param = {type: 'LIMIT'}) => {
+  return new Promise((resolve, reject) => {
+    binance.sell(symbol, qty, price, param, (error, resp) => {
+      if (error) {
+        resolve({ ok: false, data: error })
+      } else {
+        resolve({ ok: true, data: resp })
+      }
+    })
+  })
+}
+
+const cancelOrders = symbol => {
+  return new Promise((resolve, reject) => {
+    binance.cancelOrders(symbol, (error, resp, symbol) => {
+      if (error) {
+        resolve({ ok: false, data: error })
+      } else {
+        resolve({ ok: true, data: resp })
+      }
+    })
+  })
+}
+
+const getAllOrders = symbol => {
+  return new Promise((resolve, reject) => {
+    binance.allOrders(symbol, (error, resp, symbol) => {
+      if (error) {
+        resolve({ ok: false, data: error })
+      } else {
+        resolve({ ok: true, data: resp })
+      }
+    })
+  })
+}
+
 const getChartData = (pair, timeframe) => {
   return new Promise((resolve, reject) => {
     binance.websockets.chart(pair, timeframe, (symbol, interval, chart) => {
@@ -46,5 +106,10 @@ const getChartData = (pair, timeframe) => {
 
 export default {
   getBalance,
+  getPriceBySymbol,
+  buy,
+  sell,
+  cancelOrders,
+  getAllOrders,
   getChartData
 }

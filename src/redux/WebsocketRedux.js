@@ -2,7 +2,7 @@ import { createReducer, createActions } from 'reduxsauce'
 import Immutable from 'seamless-immutable'
 import { parsePeriod } from '../lib/rsiCalculator'
 import ImmutableTransform from '../services/ImmutablePersistenceTransform'
-// import { TradeConfig } from '../config'
+import { TradeConfig } from '../config'
 
 /* ------------- Types and Action Creators ------------- */
 
