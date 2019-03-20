@@ -21,6 +21,16 @@ const getCurrentPosition = (pair, balances) => {
   return currentBalance
 }
 
+const parseResponse = resp => {
+  let parsed = resp
+  if (resp.body && typeof resp.body === 'string') {
+    parsed = JSON.parse(resp.body)
+  }
+
+  return parsed
+}
+
 export {
-  getCurrentPosition
+  getCurrentPosition,
+  parseResponse
 }

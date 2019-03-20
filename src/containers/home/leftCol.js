@@ -32,6 +32,7 @@ class LeftCol extends Component {
     this.onOfflineListener = window.addEventListener('offline', () => {
       console.log('came offline!!!')
     })
+    console.log('this.props.buyData: ', this.props.buyData)
   }
 
   componentWillUnmount () {
@@ -43,12 +44,12 @@ class LeftCol extends Component {
       this.props.setProfitLossRatio(this.state.takeProfitRatio, this.state.stopLossRatio)
     }
 
-    const { periods, recentPeriod, balance, buyData, periodCount, takeProfitPrice, stopLossPrice } = this.props
+    const { periods, recentPeriod, balance, buyData, periodCount, takeProfitPrice, stopLossPrice, started } = this.props
     const neededPeriods = TradeConfig.chartPeriod * 2
 
     if (
       this.props.recentPeriod && this.props.recentPeriod.eventTime && prevProps.recentPeriod && prevProps.recentPeriod.eventTime &&
-      this.props.recentPeriod.eventTime !== prevProps.recentPeriod.eventTime
+      this.props.recentPeriod.eventTime !== prevProps.recentPeriod.eventTime && started
     ) {
       // console.log('recentPeriod: ',recentPeriod)
       if (!buyData) {
@@ -64,6 +65,7 @@ class LeftCol extends Component {
       } else {
         // with buy data already stored, indicates an action to sell
         if (takeProfitPrice && stopLossPrice && recentPeriod.closingPrice) {
+          console.log('takeProfitPrice <= recentPeriod.closingPrice || stopLossPrice >= recentPeriod.closingPrice: ',takeProfitPrice <= recentPeriod.closingPrice, stopLossPrice >= recentPeriod.closingPrice)
           if (takeProfitPrice <= recentPeriod.closingPrice || stopLossPrice >= recentPeriod.closingPrice) {
             this._placeSellOrder()
           }
@@ -93,7 +95,7 @@ class LeftCol extends Component {
       const priceResp = await BinanceApi.getPriceBySymbol(symbol)
       const capital = parseFloat(balance.pair[baseSymbol].available) * (parseInt(this.state.positionSize) * .01)
       const price = parseFloat(priceResp.data[symbol])
-      const quantity = capital / price
+      const quantity = Math.floor(capital / price)
 
       console.log('this.props.placeBuyOrder(symbol, quantity, price): ', symbol, quantity, price)
       this.props.placeBuyOrder(symbol, quantity, price)
@@ -277,7 +279,7 @@ class LeftCol extends Component {
           <Card.Body className="card-footer">
             {this.displayCurrentPosition()}
             <Button
-              disabled={this.checkForm()}
+              disabled={this.checkForm() && !started}
               className="start-button"
               variant={started ? 'danger' : 'success'}
               size="lg"
@@ -300,6 +302,10 @@ const mapStateToProps = (state) => {
     buyData: state.trader.buyData,
     buyError: state.trader.buyError,
     takeProfitRatio: state.trader.takeProfitRatio,
+
+    takeProfitPrice: state.trader.takeProfitPrice,
+    stopLossPrice: state.trader.stopLossPrice,
+
     stopLossRatio: state.trader.stopLossRatio,
     fetching: state.balance.fetching,
     balance: state.balance.balance,

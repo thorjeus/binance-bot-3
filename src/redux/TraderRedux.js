@@ -50,14 +50,15 @@ export const buyOrder = (state) =>
   state.merge({ ordering: true, buyError: null, sellError: null })
 
 export const buyOrderSuccess = (state, {data}) => {
-  const priceEntered = parseFloat(data.data.price)
+  console.log('redux(buyOrderSuccess): ', data)
+  const priceEntered = parseFloat(data.price)
   const takeProfitPercentage = state.takeProfitRatio * 0.01 // convert percentage to decimal
   const stopLossPercentage = state.stopLossRatio * 0.01 // convert percentage to decimal
 
   const takeProfitPrice = priceEntered + (priceEntered * takeProfitPercentage)
   const stopLossPrice = priceEntered - (priceEntered * stopLossPercentage)
+  console.log('redux(buyOrderSuccess): ', takeProfitPrice, stopLossPrice)
 
-  console.log('redux(buyOrderSuccess): ', data, takeProfitPrice, stopLossPrice)
   return state.merge({ ordering: false, buyData: data, takeProfitPrice, stopLossPrice })
 }
 
@@ -71,7 +72,7 @@ export const sellOrder = (state) =>
 
 export const sellOrderSuccess = (state, {data}) => {
   console.log('redux(sellOrderSuccess): ', data)
-  return state.merge({ ordering: false, sellData: data, buyData: null })
+  return state.merge({ ordering: false, sellData: data, buyData: null, takeProfitPrice: null, stopLossPrice: null })
 }
 
 export const sellOrderFailed = (state, {data}) => {
