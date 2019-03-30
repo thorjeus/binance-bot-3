@@ -9,12 +9,26 @@ export function * buyOrder (api, action) {
 
   // success?
   if (response.ok) {
-    console.log('buyOrder saga(success):', response.data)
+    // console.log('buyOrder saga(success):', response.data)
     yield put(TraderActions.placeBuyOrderSuccess(parseResponse(response.data)))
   } else {
     console.log('buyOrder saga(failed):', response.data)
     yield put(TraderActions.placeBuyOrderFailed(parseResponse(response.data)))
   }
+  // const dummyData = {
+  //   symbol: symbol,
+  //   orderId: 4480717,
+  //   clientOrderId: 'te38xGILZUXrPZHnTQPH6h',
+  //   transactTime: 1509049732437,
+  //   price: price,
+  //   origQty: quantity,
+  //   executedQty: '5.00000000',
+  //   status: 'FILLED',
+  //   timeInForce: 'GTC',
+  //   type: 'LIMIT',
+  //   side: 'BUY'
+  // }
+  // yield put(TraderActions.placeBuyOrderSuccess(dummyData))
 }
 
 export function * sellOrder (api, action) {
@@ -24,10 +38,25 @@ export function * sellOrder (api, action) {
 
   // success?
   if (response.ok) {
-    console.log('sellOrder saga(success):', response.data)
+    // console.log('sellOrder saga(success):', response.data)
     yield put(TraderActions.placeSellOrderSuccess(parseResponse(response.data)))
   } else {
     console.log('sellOrder saga(failed):', response.data)
     yield put(TraderActions.placeSellOrderFailed(parseResponse(response.data)))
   }
+
+  // const dummyData = {
+  //   symbol: symbol,
+  //   orderId: 4480717,
+  //   clientOrderId: 'te38xGILZUXrPZHnTQPH6h',
+  //   transactTime: 1509049732437,
+  //   price: price,
+  //   origQty: quantity,
+  //   executedQty: '5.00000000',
+  //   status: 'FILLED',
+  //   timeInForce: 'GTC',
+  //   type: 'LIMIT',
+  //   side: 'SELL'
+  // }
+  // yield put(TraderActions.placeSellOrderSuccess(dummyData))
 }

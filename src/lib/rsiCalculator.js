@@ -2,14 +2,14 @@ import { TradeConfig } from '../config'
 
 const getPriceDifference = (recent, last) => {
   let change = recent.closingPrice - last.closingPrice
-  recent.change = parseFloat(change.toFixed(8))
+  recent.change = change
+  recent.loss = 0
+  recent.gain = 0
 
-  if (recent.change < 0) {
-    recent.loss = recent.change * -1 // treat as positive
-    recent.gain = 0
+  if (recent.closingPrice > last.closingPrice) {
+    recent.gain = recent.closingPrice - last.closingPrice
   } else {
-    recent.loss = 0
-    recent.gain = recent.change
+    recent.loss = last.closingPrice - recent.closingPrice
   }
   return recent
 }
@@ -31,7 +31,10 @@ const getAvgGain = (recent, last, periods) => {
     totalGain += recent.gain
     avgGain = totalGain / TradeConfig.chartPeriod
   } else {
-    avgGain = ((last.avgGain * 13) + recent.gain) / TradeConfig.chartPeriod
+    // avgGain = (last.avgGain * (periods.length - 1) + recent.gain) / periods.length
+
+    const k = 2 / (TradeConfig.chartPeriod + 1)
+    avgGain = recent.gain * k + last.avgGain * (1 - k)
   }
 
   return avgGain
@@ -47,13 +50,16 @@ const getAvgLoss = (recent, last, periods) => {
     totalLoss += recent.loss
     avgLoss = totalLoss / TradeConfig.chartPeriod
   } else {
-    avgLoss = ((last.avgLoss * 13) + recent.loss) / TradeConfig.chartPeriod
+    // avgLoss = (last.avgLoss * (periods.length - 1) + recent.loss) / periods.length
+
+    const k = 2 / (TradeConfig.chartPeriod + 1)
+    avgLoss = recent.loss * k + last.avgLoss * (1 - k)
   }
 
   return avgLoss
 }
 
-const parsePeriod = (recentPeriod, parsedPeriods) => {
+const parsePeriod = (recentPeriod, parsedPeriods, emaLength) => {
   let pending = {
     symbol: recentPeriod.s,
     eventTime: recentPeriod.E,
@@ -82,17 +88,20 @@ const parsePeriod = (recentPeriod, parsedPeriods) => {
   if (parsedPeriods.length < TradeConfig.chartPeriod) {
     parsedPeriods.push(pending)
     return parsedPeriods
-  } else {
-    parsedPeriods.shift()
   }
 
   pending.avgGain = getAvgGain(pending, lastPeriod, parsedPeriods)
   pending.avgLoss = getAvgLoss(pending, lastPeriod, parsedPeriods)
-  pending.rs = pending.avgGain / pending.avgLoss
+  if (lastPeriod.avgGain && lastPeriod.avgLoss) {
+    pending.rs = pending.avgGain / pending.avgLoss
+  }
 
-  let rsi = 100 - (100 / (1 + pending.rs))
-  pending.rsi = parseFloat(rsi.toFixed(4))
+  if (TradeConfig.requiredEMAperiod <= (emaLength + 1)) {
+    let rsi = 100 - (100 / (1 + pending.rs))
+    pending.rsi = parseFloat(rsi.toFixed(4))
+  }
 
+  parsedPeriods.shift()
   parsedPeriods.push(pending)
 
   return parsedPeriods

@@ -1,5 +1,6 @@
 import { createReducer, createActions } from 'reduxsauce'
 import Immutable from 'seamless-immutable'
+import moment from 'moment'
 
 /* ------------- Types and Action Creators ------------- */
 
@@ -21,8 +22,8 @@ export default Creators
 
 export const INITIAL_STATE = Immutable({
   started: false,
-  takeProfitRatio: 1,
-  stopLossRatio: 0.5,
+  takeProfitRatio: 1.5,
+  stopLossRatio: 1,
   takeProfitPrice: null,
   stopLossPrice: null,
   ordering: false,
@@ -50,14 +51,15 @@ export const buyOrder = (state) =>
   state.merge({ ordering: true, buyError: null, sellError: null })
 
 export const buyOrderSuccess = (state, {data}) => {
-  console.log('redux(buyOrderSuccess): ', data)
+  // console.log('redux(buyOrderSuccess): ', data)
   const priceEntered = parseFloat(data.price)
   const takeProfitPercentage = state.takeProfitRatio * 0.01 // convert percentage to decimal
   const stopLossPercentage = state.stopLossRatio * 0.01 // convert percentage to decimal
 
   const takeProfitPrice = priceEntered + (priceEntered * takeProfitPercentage)
   const stopLossPrice = priceEntered - (priceEntered * stopLossPercentage)
-  console.log('redux(buyOrderSuccess): ', takeProfitPrice, stopLossPrice)
+  // console.log('redux(buyOrderSuccess): ', takeProfitPrice, stopLossPrice)
+  console.log('BUY_SUCCESS: ('+moment(data.transactTime).format('H:mma')+')', data.price)
 
   return state.merge({ ordering: false, buyData: data, takeProfitPrice, stopLossPrice })
 }
@@ -71,7 +73,8 @@ export const sellOrder = (state) =>
   state.merge({ ordering: true, buyError: null, sellError: null })
 
 export const sellOrderSuccess = (state, {data}) => {
-  console.log('redux(sellOrderSuccess): ', data)
+  // console.log('redux(sellOrderSuccess): ', data)
+  console.log('SELL_SUCCESS: ('+moment(data.transactTime).format('H:mma')+')', data.price)
   return state.merge({ ordering: false, sellData: data, buyData: null, takeProfitPrice: null, stopLossPrice: null })
 }
 

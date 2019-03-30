@@ -1,6 +1,7 @@
 import { createReducer, createActions } from 'reduxsauce'
 import Immutable from 'seamless-immutable'
 import { parsePeriod } from '../lib/rsiCalculator'
+import { parseMarketData } from '../lib/utils'
 import ImmutableTransform from '../services/ImmutablePersistenceTransform'
 import { TradeConfig } from '../config'
 
@@ -26,6 +27,7 @@ export const INITIAL_STATE = Immutable({
   currentRSI: null,
   recentPeriod: null,
   periods: [],
+  ema: [],
   periodCount: 0
 })
 
@@ -47,14 +49,31 @@ export const getChart = (state, {pair}) => {
 
 export const getChartSuccess = (state, {data}) => {
   let periods = ImmutableTransform.in(state.periods)
-  let updatedPeriods = parsePeriod(data, periods)
+  let ema = ImmutableTransform.in(state.ema)
+  let updatedPeriods = parsePeriod(data, periods, ema.length)
   let recentPeriod = updatedPeriods[updatedPeriods.length - 1]
+
+  if (recentPeriod.rsi && recentPeriod.rsi < 20) {
+    console.log('recentPeriod RSI: '+recentPeriod.rsi)
+  }
+
+  if (ema.length === TradeConfig.requiredEMAperiod) {
+    ema.shift()
+  }
+  if (recentPeriod.rs) {
+    ema.push({
+      avgGain: recentPeriod.avgGain,
+      avgLoss: recentPeriod.avgLoss
+    })
+  }
+  // console.log('recentPeriod('+state.periodCount+'): ',recentPeriod)
 
   return state.merge({
     fetchingChart: false,
     periods: updatedPeriods,
     periodCount: state.periodCount + 1,
-    recentPeriod
+    recentPeriod,
+    ema
   })
 }
 
@@ -62,7 +81,7 @@ export const getChartError = (state, {data}) =>
   state.merge({ fetchingChart: false, chartError: data })
 
 export const resetChartData = (state) =>
-  state.merge({ recentPeriod: null, periods: [], periodCount: 0 })
+  state.merge({ recentPeriod: null, periods: [], periodCount: 0, ema: [] })
 
 
 /* ------------- Hookup Reducers To Types ------------- */

@@ -20,8 +20,8 @@ class LeftCol extends Component {
     this.state = {
       takeProfitRatio: this.props.takeProfitRatio,
       stopLossRatio: this.props.stopLossRatio,
-      positionSize: 10,
-      buyTrigger: 10,
+      positionSize: 98,
+      buyTrigger: 15,
       pair: '',
       balance: '',
       balanceUnit: ''
@@ -32,7 +32,6 @@ class LeftCol extends Component {
     this.onOfflineListener = window.addEventListener('offline', () => {
       console.log('came offline!!!')
     })
-    console.log('this.props.buyData: ', this.props.buyData)
   }
 
   componentWillUnmount () {
@@ -55,17 +54,14 @@ class LeftCol extends Component {
       if (!buyData) {
         // no buy data indicates an action is still to buy
         // console.log('recentPeriod.rsi, this.state.buyTrigger, periodCount, neededPeriods: ',recentPeriod.rsi, this.state.buyTrigger, periodCount, neededPeriods)
-        if (
-          recentPeriod && recentPeriod.rsi && recentPeriod.rsi <= this.state.buyTrigger &&
-          periodCount >= neededPeriods
-        ) {
+        if (recentPeriod && recentPeriod.rsi && recentPeriod.rsi <= this.state.buyTrigger) {
           console.log('Enter buy zone(rsi): ', recentPeriod.rsi)
           this._placeBuyOrder()
         }
       } else {
         // with buy data already stored, indicates an action to sell
         if (takeProfitPrice && stopLossPrice && recentPeriod.closingPrice) {
-          console.log('takeProfitPrice <= recentPeriod.closingPrice || stopLossPrice >= recentPeriod.closingPrice: ',takeProfitPrice <= recentPeriod.closingPrice, stopLossPrice >= recentPeriod.closingPrice)
+          console.log('takeProfitPrice, stopLossPrice',takeProfitPrice <= recentPeriod.closingPrice, stopLossPrice >= recentPeriod.closingPrice)
           if (takeProfitPrice <= recentPeriod.closingPrice || stopLossPrice >= recentPeriod.closingPrice) {
             this._placeSellOrder()
           }
@@ -74,11 +70,11 @@ class LeftCol extends Component {
       }
     }
 
-    if (prevProps.ordering && !this.props.ordering) {
-      if (this.props.buyError) {
-        console.log('Buy Order Failed: ', this.props.buyError)
-      }
-    }
+    // if (prevProps.ordering && !this.props.ordering) {
+    //   if (this.props.buyError) {
+    //     console.log('Buy Order Failed: ', this.props.buyError)
+    //   }
+    // }
   }
 
   _placeBuyOrder = async () => {
@@ -88,18 +84,15 @@ class LeftCol extends Component {
 
     // cancel any pending order with regards the choosen pair
     const cancelResp = await BinanceApi.cancelOrders(symbol)
-    console.log('cancel call before buy: ', cancelResp)
+    // console.log('cancel call before buy: ', cancelResp)
 
-    // check if we have sufficient balance to place an order
-    // if (balance && balance.pair && balance.pair[baseSymbol] && parseInt(balance.pair[baseSymbol].available) > 2) {
-      const priceResp = await BinanceApi.getPriceBySymbol(symbol)
-      const capital = parseFloat(balance.pair[baseSymbol].available) * (parseInt(this.state.positionSize) * .01)
-      const price = parseFloat(priceResp.data[symbol])
-      const quantity = Math.floor(capital / price)
+    const priceResp = await BinanceApi.getPriceBySymbol(symbol)
+    const capital = parseFloat(balance.pair[baseSymbol].available) * (parseInt(this.state.positionSize) * .01)
+    const price = parseFloat(priceResp.data[symbol])
+    const quantity = Math.floor(capital / price)
 
-      console.log('this.props.placeBuyOrder(symbol, quantity, price): ', symbol, quantity, price)
-      this.props.placeBuyOrder(symbol, quantity, price)
-    // }
+    // console.log('this.props.placeBuyOrder(symbol, quantity, price): ', symbol, quantity, price)
+    this.props.placeBuyOrder(symbol, quantity, price)
   }
 
   _placeSellOrder = async () => {
@@ -108,10 +101,11 @@ class LeftCol extends Component {
 
     // cancel any pending order with regards the choosen pair
     const cancelResp = await BinanceApi.cancelOrders(symbol)
-    console.log('cancel call before sell: ', cancelResp)
+    // console.log('cancel call before sell: ', cancelResp)
 
-    console.log('this.props.placeSellOrder(symbol, buyData.origQty, recentPeriod.closingPrice)', symbol, buyData.origQty, recentPeriod.closingPrice)
-    this.props.placeSellOrder(symbol, buyData.origQty, recentPeriod.closingPrice)
+    // console.log('this.props.placeSellOrder(symbol, buyData.origQty, recentPeriod.closingPrice)', symbol, buyData.origQty, recentPeriod.closingPrice)
+    this.props.placeSellOrder(symbol, buyData.origQty, recentPeriod.closingPrice) // limit order
+    // this.props.placeSellOrder(symbol, buyData.origQty) // market order
   }
 
   checkForm = () => {
@@ -199,7 +193,7 @@ class LeftCol extends Component {
                       <FormControl
                         disabled={started}
                         value={this.state.takeProfitRatio}
-                        onChange={(ev) => this.setState({ takeProfitRatio: isNaN(parseFloat(ev.target.value)) ? '' : parseFloat(ev.target.value) })}
+                        onChange={(ev) => this.setState({ takeProfitRatio: ev.target.value })}
                       />
                       <InputGroup.Append>
                         <InputGroup.Text>%</InputGroup.Text>
@@ -214,7 +208,7 @@ class LeftCol extends Component {
                       <FormControl
                         disabled={started}
                         value={this.state.stopLossRatio}
-                        onChange={(ev) => this.setState({ stopLossRatio: isNaN(parseFloat(ev.target.value)) ? '' : parseFloat(ev.target.value) })}
+                        onChange={(ev) => this.setState({ stopLossRatio: ev.target.value })}
                       />
                       <InputGroup.Append>
                         <InputGroup.Text>%</InputGroup.Text>
@@ -286,10 +280,32 @@ class LeftCol extends Component {
               onClick={() => { this.props.toggleTrader() }}
             >
               <FontAwesomeIcon icon={started ? 'stop' : 'play'} />{' '}
-              {started ? 'Stop' : 'Start'}
+              {started ? 'Stop' : 'Scalp'}
             </Button>
           </Card.Body>
         </Card>
+        {
+          !this.props.buyData &&
+          <Button
+            size='lg'
+            className='manual-buy-button'
+            onClick={this._placeBuyOrder}
+            variant='outline-success'
+          >
+            Buy
+          </Button>
+        }
+        {
+          this.props.buyData &&
+          <Button
+            size='lg'
+            className='manual-buy-button'
+            onClick={this._placeSellOrder}
+            variant='outline-danger'
+          >
+            Sell
+          </Button>
+        }
       </Col>
     )
   }

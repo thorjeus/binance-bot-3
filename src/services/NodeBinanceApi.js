@@ -42,13 +42,18 @@ const buy = (symbol, qty, price, param = {type: 'LIMIT'}) => {
 
 const sell = (symbol, qty, price, param = {type: 'LIMIT'}) => {
   return new Promise((resolve, reject) => {
-    binance.sell(symbol, qty, price, param, (error, resp) => {
-      if (error) {
-        resolve({ ok: false, data: error })
-      } else {
-        resolve({ ok: true, data: resp })
-      }
-    })
+    if (!price) { // do market sell if no price is provided
+      binance.marketSell(symbol, qty)
+      resolve({ ok: true, data: 'Market sell executed.' })
+    } else {
+      binance.sell(symbol, qty, price, param, (error, resp) => {
+        if (error) {
+          resolve({ ok: false, data: error })
+        } else {
+          resolve({ ok: true, data: resp })
+        }
+      })
+    }
   })
 }
 
