@@ -4,6 +4,7 @@ import { parsePeriod } from '../lib/rsiCalculator'
 import { parseMarketData } from '../lib/utils'
 import ImmutableTransform from '../services/ImmutablePersistenceTransform'
 import { TradeConfig } from '../config'
+import moment from 'moment'
 
 /* ------------- Types and Action Creators ------------- */
 
@@ -54,7 +55,7 @@ export const getChartSuccess = (state, {data}) => {
   let recentPeriod = updatedPeriods[updatedPeriods.length - 1]
 
   if (recentPeriod.rsi && recentPeriod.rsi < 20) {
-    console.log('recentPeriod RSI: '+recentPeriod.rsi)
+    console.log(`recentPeriod RSI(${moment().format('H:mma')}): ${recentPeriod.rsi}`)
   }
 
   if (ema.length === TradeConfig.requiredEMAperiod) {

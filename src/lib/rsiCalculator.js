@@ -33,8 +33,9 @@ const getAvgGain = (recent, last, periods) => {
   } else {
     // avgGain = (last.avgGain * (periods.length - 1) + recent.gain) / periods.length
 
-    const k = 2 / (TradeConfig.chartPeriod + 1)
-    avgGain = recent.gain * k + last.avgGain * (1 - k)
+    // const k = 2 / (TradeConfig.chartPeriod + 1)
+    const k = 1 / TradeConfig.chartPeriod
+    avgGain = (recent.gain * k) + ((1 - k) * last.avgGain)
   }
 
   return avgGain
@@ -52,11 +53,23 @@ const getAvgLoss = (recent, last, periods) => {
   } else {
     // avgLoss = (last.avgLoss * (periods.length - 1) + recent.loss) / periods.length
 
-    const k = 2 / (TradeConfig.chartPeriod + 1)
-    avgLoss = recent.loss * k + last.avgLoss * (1 - k)
+    // const k = 2 / (TradeConfig.chartPeriod + 1)
+    const k = 1 / TradeConfig.chartPeriod
+    avgLoss = (recent.loss * k) + ((1 - k) * last.avgLoss)
   }
 
   return avgLoss
+}
+
+const validateRSI = (currentRSI, lastRSI) => {
+  let difference
+  if (currentRSI < lastRSI) {
+    difference = lastRSI - lastRSI
+  } else {
+    difference = currentRSI - lastRSI
+  }
+  // return previous RSI if difference is too steep
+  return difference > 15 ? lastRSI : currentRSI
 }
 
 const parsePeriod = (recentPeriod, parsedPeriods, emaLength) => {
@@ -98,6 +111,12 @@ const parsePeriod = (recentPeriod, parsedPeriods, emaLength) => {
 
   if (TradeConfig.requiredEMAperiod <= (emaLength + 1)) {
     let rsi = 100 - (100 / (1 + pending.rs))
+
+    // if (lastPeriod.rsi) {
+    //   pending.rsi = validateRSI(rsi, lastPeriod.rsi)
+    // } else {
+    //   pending.rsi = parseFloat(rsi.toFixed(4))
+    // }
     pending.rsi = parseFloat(rsi.toFixed(4))
   }
 
