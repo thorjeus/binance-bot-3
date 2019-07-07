@@ -285,26 +285,26 @@ class LeftCol extends Component {
           </Card.Body>
         </Card>
         {
-          !this.props.buyData &&
-          <Button
-            size='lg'
-            className='manual-buy-button'
-            onClick={this._placeBuyOrder}
-            variant='outline-success'
-          >
-            Buy
-          </Button>
+          // !this.props.buyData &&
+          // <Button
+          //   size='lg'
+          //   className='manual-buy-button'
+          //   onClick={this._placeBuyOrder}
+          //   variant='outline-success'
+          // >
+          //   Buy
+          // </Button>
         }
         {
-          this.props.buyData &&
-          <Button
-            size='lg'
-            className='manual-buy-button'
-            onClick={this._placeSellOrder}
-            variant='outline-danger'
-          >
-            Sell
-          </Button>
+          // this.props.buyData &&
+          // <Button
+          //   size='lg'
+          //   className='manual-buy-button'
+          //   onClick={this._placeSellOrder}
+          //   variant='outline-danger'
+          // >
+          //   Sell
+          // </Button>
         }
       </Col>
     )
